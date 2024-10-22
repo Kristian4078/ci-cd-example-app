@@ -1,47 +1,47 @@
-name: Build Vote
+---
+name: Docker Build Vote
 
 on:
-  # we want pull requests so we can build(test) but not push to image registry
   push:
     branches:
-      - 'main'
-    # only build when important files change
+      - main
     paths:
-      - 'vote/**'
+      - 'result/**'
       - '.github/workflows/call-docker-build-vote.yaml'
   pull_request:
     branches:
-      - 'main'
+      - main
     # only build when important files change
     paths:
       - 'vote/**'
       - '.github/workflows/call-docker-build-vote.yaml'
-  schedule:
-    # re-run montly to keep image fesh with upstream base images
-    - cron: '0 12 15 * *'
+    schedule:
+      # run every 15th of the month
+      - cron: '0 12 15 * *'
 
 jobs:
-  call-docker-build:
+  docker-build:
+    call: Docker Build    
 
-    name: Call Docker Build
-
-    uses: bretfisher/docker-build-workflow/.github/workflows/reusable-docker-build.yaml@main
+    uses: Kristian4078/docker-build-workflow/.github/workflows/reusable-docker-build.yaml@main
 
     permissions:
       contents: read
       packages: write # needed to push docker image to ghcr.io
-      pull-requests: write # needed to create and update comments in PRs
-    
+      pull-requests: write # needed to create and update comments on PRs
+
+
     secrets:
 
       # Only needed if with:dockerhub-enable is true below
-      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub_username: ${{ secrets.DOCKER_USERNAME }}
 
       # Only needed if with:dockerhub-enable is true below
-      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+      dockerhub_password: ${{ secrets.DOCKER_PASSWORD }}
+
 
     with:
-      
+
       ### REQUIRED
       ### ENABLE ONE OR BOTH REGISTRIES
       ### tell docker where to push.
@@ -49,6 +49,7 @@ jobs:
       dockerhub-enable: true
       ghcr-enable: true
 
+      
       ### REQUIRED 
       ### A list of the account/repo names for docker build. List should match what's enabled above
       ### defaults to:
@@ -65,21 +66,24 @@ jobs:
       #   type=ref,event=branch
       #   type=semver,pattern={{version}}
       #   type=raw,value=gha-${{ github.run_id }}
-      
+
+
       ### path to where docker should copy files into image
       ### defaults to root of repository (.)
       context: "{{defaultContext}}:vote"
-      
+
+
       ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
       # file: Containerfile
 
+
       ### build stage to target, defaults to empty, which builds to last stage in Dockerfile
       # target:
-      
+
       ### platforms to build for, defaults to linux/amd64
       ### other options: linux/amd64,linux/arm64,linux/arm/v7
       platforms: linux/amd64,linux/arm64,linux/arm/v7
-      
+
       ### Create a PR comment with image tags and labels
       ### defaults to false
       # comment-enable: false
